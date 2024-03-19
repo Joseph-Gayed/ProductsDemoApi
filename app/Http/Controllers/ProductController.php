@@ -18,6 +18,13 @@ class ProductController extends Controller
      */
     public function index()
     {
+        $products = Product::all();
+        $responseData = [];
+        if ($products->isEmpty()) {
+            $responseData["message"] = "No products";
+        }
+        $responseData["data"] =  $products;
+        return response()->json($responseData);
     }
 
     /**
@@ -33,7 +40,9 @@ class ProductController extends Controller
      */
     public function show(string $id)
     {
-
+        $product = Product::find($id);
+        $responseData["data"] =  $product;
+        return response()->json($responseData);
     }
 
     /**
