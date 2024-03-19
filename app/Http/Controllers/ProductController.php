@@ -32,9 +32,29 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-       
+        $validatedData = $this->validateProductInsertionRequest($request);
+        $createdProduct = Product::create($validatedData);
+        return response()->json(['message' => 'Product created successfully', 'data' => $createdProduct], 201);
+    }
+    
+    /**
+     * Validate incoming request data for the insertaion operation and generate slug.
+     */
+    public function validateProductInsertionRequest(Request $request){
+        // Validate incoming request data
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'description' => 'nullable|string',
+        ]);
+
+        // Generate slug from the provided name
+        $validatedData['slug'] = Str::slug($validatedData['name']);
+        return  $validatedData;
     }
 
+    
+    
     /**
      * Display the specified resource.
      */
