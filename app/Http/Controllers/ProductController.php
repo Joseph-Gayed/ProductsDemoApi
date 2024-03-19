@@ -109,5 +109,28 @@ class ProductController extends Controller
         return response()->json(Product::destroy($id));
     }
 
+    /**
+     * Search in products names, description by keyword.
+     */
+    public function search(Request $request)
+    {
+        $keyword = $request->input('keyword');
+    
+        // Query products where name or description contains the keyword
+        $products = Product::query()
+        ->where(function (Builder $query) use ($keyword) {
+            $query->where('name', 'like', "%$keyword%")
+                  ->orWhere('description', 'like', "%$keyword%");
+        })
+        ->get();
 
+        $responseData = [];
+        if ($products->isEmpty() ||$products ==null) {
+            $responseData["message"] = "No products";
+        }
+        $responseData["data"] =  $products;
+        return response()->json($responseData);
+    }
+
+    
 }
