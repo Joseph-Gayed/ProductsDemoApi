@@ -70,9 +70,36 @@ class ProductController extends Controller
      */
     public function update(Request $request, string $id)
     {
-
+        $product = Product::find($id);
+        $validatedData = $this->validateProductUpdatesRequest($request);
+        $product->update($validatedData);
+        $responseData["data"] =  $product;
+        return response()->json($responseData);
     }
 
+    /**
+     * Validate incoming request data for the updating operation and generate slug.
+     */
+    public function validateProductUpdatesRequest(Request $request){
+        $fields = $request->all();
+
+        $rules = [ 'name' => 'string|max:255',
+        'price' => 'numeric|min:0',
+        'description' => 'nullable|string'];
+
+
+        // Validate each field based on provided rules
+        $validatedData = Validator::make($fields, $rules)->validate();
+
+        // Generate slug from the provided name, if name is provided
+        if (isset($fields['name'])) {
+            $validatedData['slug'] = Str::slug($fields['name']);
+        }
+
+        return $validatedData;
+    }
+    
+    
 
     /**
      * Remove the specified resource from storage. 
