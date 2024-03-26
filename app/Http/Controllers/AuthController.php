@@ -11,6 +11,31 @@ use Laravel\Sanctum\HasApiTokens;
 class AuthController extends Controller
 {
 
+    public function register(Request $request)
+    {
+        $validatedData = $this->validateSignupRequest($request);
+        $createdUser = User::create($validatedData);
+        // Create a token for the guest user
+        $token = $createdUser->createToken($createdUser['email'])->plainTextToken;
+        $createdUser['token'] = $token;
+        return response()->json(['message' => 'user registered successfully', 'data' => $createdUser], 201);
+    }
+
+    /**
+     * Validate incoming request data for the user registeration operation .
+     */
+    public function validateSignupRequest(Request $request)
+    {
+        // Validate incoming request data
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|unique:users,email',
+            'password' => 'required|string|confirmed',
+        ]);
+
+        return  $validatedData;
+    }
+
     public function guestLogin(Request $request)
     {
         // Retrieve the guest identifier from the request data
@@ -44,3 +69,4 @@ class AuthController extends Controller
     }
 
 }
+
