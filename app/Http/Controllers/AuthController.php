@@ -13,27 +13,20 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
-        $validatedData = $this->validateSignupRequest($request);
+        $signupValidationRules = [
+            'name' => 'required|string|max:255',
+            'email' => 'required|unique:users,email',
+            'password' => 'required|string|confirmed',
+        ];
+        $validatedData = $this->validateAuthRequest($request,$signupValidationRules);
+        if($validatedData){
+            $validatedData['password'] = Hash::make($validatedData['password']);
+        }
         $createdUser = User::create($validatedData);
         // Create a token for the guest user
         $token = $createdUser->createToken($createdUser['email'])->plainTextToken;
         $createdUser['token'] = $token;
         return response()->json(['message' => 'user registered successfully', 'data' => $createdUser], 201);
-    }
-
-    /**
-     * Validate incoming request data for the user registeration operation .
-     */
-    public function validateSignupRequest(Request $request)
-    {
-        // Validate incoming request data
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|unique:users,email',
-            'password' => 'required|string|confirmed',
-        ]);
-
-        return  $validatedData;
     }
 
     public function guestLogin(Request $request)
@@ -73,6 +66,18 @@ class AuthController extends Controller
         // Delete the current token that was used for the request
         $request->user()->currentAccessToken()->delete();
         return response()->json(['message' => 'user logged out successfully'], 200);
+    }
+
+
+
+    /**
+     * Validate incoming request data for the any login/signup operation .
+     */
+    public function validateAuthRequest(Request $request , $validationRules)
+    {
+        // Validate incoming request data
+        $validatedData = $request->validate($validationRules);
+        return  $validatedData;
     }
 }
 
