@@ -10,6 +10,7 @@ Route::get('/products',[ProductController::class,'index']);
 Route::get('/products/{id}',[ProductController::class,'show']);
 
 Route::post('/register',[AuthController::class,'register']);
+Route::post('/login',[AuthController::class,'login']);
 Route::post('/guest_login',[AuthController::class,'guestLogin']);
  
 //Protected routes (Apis that Must be called with token)

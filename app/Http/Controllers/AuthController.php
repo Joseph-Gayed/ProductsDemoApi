@@ -5,8 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
-use Laravel\Sanctum\HasApiTokens;
 
 class AuthController extends Controller
 {
@@ -68,6 +66,29 @@ class AuthController extends Controller
         return response()->json(['message' => 'user logged out successfully'], 200);
     }
 
+    public function login(Request $request)
+    {
+        $loginValidationRules = [
+            'email' => 'required|string',
+            'password' => 'required|string',
+        ];
+        $validatedData = $this->validateAuthRequest($request,$loginValidationRules);
+        
+        //check email
+        $checkedUser  = User::where('email',$validatedData['email'])->first();
+        
+        if(!$checkedUser  || !Hash::check($validatedData['password'], $checkedUser->password)){
+            return response()->json(['message' => 'Invalid Credentials'], 401);
+        }
+        
+        // Revoke existing tokens associated with the guest user
+        $checkedUser->tokens()->delete();
+
+        // Create a token for the guest user
+        $token = $checkedUser->createToken($checkedUser['email'])->plainTextToken;
+        $checkedUser['token'] = $token;
+        return response()->json(['message' => 'user logged in successfully', 'data' => $checkedUser], 201);
+    }
 
 
     /**
